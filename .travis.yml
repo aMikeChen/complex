@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ccmikechen/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ccmikechen/react-test npm test
+
+after_success:
+  - docker build -t ccmikechen/complex-client ./client
+  - docker build -t ccmikechen/complex-nginx ./nginx
+  - docker build -t ccmikechen/complex-server ./server
+  - docker build -t ccmikechen/complex-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ccmikechen/complex-client
+  - docker push ccmikechen/complex-nginx
+  - docker push ccmikechen/complex-server
+  - docker push ccmikechen/complex-worker
